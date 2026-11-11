@@ -3,17 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>슈가 &amp; 카페인 디텍터</title>
+<title>마시기 전에 3초만</title>
 <style>
   :root {
     --bg: #fff8f0;
     --card: #ffffff;
     --text: #2b2b2b;
     --sub: #6b6b6b;
+    --line: #ece4dc;
+    --soft: #fff1ea;
     --sugar: #ff8fab;
     --caffeine: #8b5e3c;
     --btn: #ff7a59;
     --btn-hover: #f2603c;
+    --ok: #2fa86b;
+    --warn: #f0a020;
+    --high: #e5484d;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -21,6 +26,8 @@
       --card: #2a2725;
       --text: #f4f1ee;
       --sub: #b8b1ab;
+      --line: #3d3936;
+      --soft: #3a2f2a;
       --caffeine: #d2a074;
     }
   }
@@ -29,80 +36,454 @@
     min-height: 100vh;
     min-height: 100dvh;
     display: flex;
-    align-items: center;
     justify-content: center;
     padding: 24px 16px;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
     word-break: keep-all;
+    line-height: 1.6;
   }
+  .screen { display: none; width: 100%; max-width: 440px; }
+  .screen.active { display: block; }
+  #home.active { display: flex; align-items: center; }
   .card {
     width: 100%;
-    max-width: 420px;
     background: var(--card);
-    border-radius: 28px;
-    padding: 48px 28px 36px;
-    text-align: center;
+    border-radius: 24px;
+    padding: 28px 22px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    margin-bottom: 16px;
   }
-  .icons {
-    font-size: 56px;
-    margin-bottom: 20px;
-    letter-spacing: 8px;
-  }
+
+  /* 첫 화면 */
+  .hero { text-align: center; padding: 48px 28px 36px; }
+  .icons { font-size: 56px; margin-bottom: 20px; letter-spacing: 8px; }
   .icons span { display: inline-block; animation: bob 2.4s ease-in-out infinite; }
   .icons span:nth-child(2) { animation-delay: 0.3s; }
   .icons span:nth-child(3) { animation-delay: 0.6s; }
-  @keyframes bob {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .hero h1 { font-size: 30px; line-height: 1.3; font-weight: 800; margin-bottom: 14px; }
+  .accent { color: var(--sugar); }
+  .hero p { font-size: 17px; color: var(--sub); margin-bottom: 36px; }
+
+  /* 공통 */
+  .step-tag {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--btn);
+    background: var(--soft);
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 10px;
   }
-  h1 {
-    font-size: 30px;
-    line-height: 1.3;
-    font-weight: 800;
-    margin-bottom: 14px;
-  }
-  h1 .sugar { color: var(--sugar); }
-  h1 .caffeine { color: var(--caffeine); }
-  p {
-    font-size: 17px;
-    line-height: 1.6;
-    color: var(--sub);
-    margin-bottom: 36px;
-  }
+  h2 { font-size: 22px; line-height: 1.35; margin-bottom: 8px; }
+  h3 { font-size: 17px; margin-bottom: 10px; }
+  .desc { color: var(--sub); font-size: 15px; margin-bottom: 18px; }
   button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn {
     width: 100%;
-    padding: 18px;
-    font-size: 20px;
+    padding: 17px;
+    font-size: 19px;
     font-weight: 700;
     color: #fff;
     background: var(--btn);
-    border: none;
     border-radius: 16px;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
   }
-  button:hover { background: var(--btn-hover); }
-  button:active { transform: scale(0.97); }
+  .btn:hover { background: var(--btn-hover); }
+  .btn:active { transform: scale(0.97); }
+  .btn.ghost { background: transparent; color: var(--sub); border: 2px solid var(--line); margin-top: 10px; }
+  .back { background: none; color: var(--sub); font-size: 15px; padding: 4px 0; margin-bottom: 12px; }
+
+  /* 라벨 예시 */
+  .label {
+    border: 2px solid var(--text);
+    border-radius: 6px;
+    font-size: 14px;
+    margin: 6px 0 14px;
+    overflow: hidden;
+  }
+  .label-head {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--text); color: var(--card);
+    padding: 8px 10px; font-weight: 700;
+  }
+  .label-row { display: flex; justify-content: space-between; padding: 6px 10px; border-top: 1px solid var(--line); }
+  .label-row.indent { padding-left: 24px; }
+  .hl { position: relative; outline: 3px solid var(--btn); outline-offset: -3px; background: var(--soft); }
+  .label-head.hl { background: var(--btn); outline: none; color: #fff; }
+  .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--btn); color: #fff; font-size: 13px; font-weight: 800;
+    margin-right: 6px; flex-shrink: 0;
+  }
+  .label-head .num { background: #fff; color: var(--btn); }
+  .caf-box {
+    border: 2px dashed var(--caffeine);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .caf-box b { color: var(--caffeine); }
+  .checklist { list-style: none; }
+  .checklist li { display: flex; gap: 8px; margin-bottom: 12px; font-size: 15px; }
+  .checklist li small { display: block; color: var(--sub); font-size: 13.5px; margin-top: 2px; }
+  .tip {
+    background: var(--soft);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  /* 촬영 */
+  .photo-area {
+    border: 2px dashed var(--line);
+    border-radius: 16px;
+    min-height: 160px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--sub);
+    font-size: 15px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    text-align: center;
+    padding: 12px;
+  }
+  .photo-area img { width: 100%; max-height: 360px; object-fit: contain; border-radius: 10px; }
+  #photoInput { display: none; }
+
+  /* 입력 */
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .field label small { font-weight: 400; color: var(--sub); }
+  .input-wrap { display: flex; align-items: center; gap: 8px; }
+  input[type="text"], input[type="number"] {
+    flex: 1;
+    width: 100%;
+    font-size: 18px;
+    font-family: inherit;
+    padding: 12px 14px;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  input:focus { outline: none; border-color: var(--btn); }
+  .unit { font-weight: 700; color: var(--sub); min-width: 32px; }
+  .seg { display: flex; gap: 6px; margin-bottom: 8px; }
+  .seg button {
+    flex: 1; padding: 9px 4px; font-size: 14px; border-radius: 10px;
+    background: var(--bg); color: var(--sub); border: 2px solid var(--line);
+  }
+  .seg button.on { border-color: var(--btn); color: var(--btn); font-weight: 700; background: var(--soft); }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 14.5px; margin-top: 8px; color: var(--sub); }
+  .check input { width: 20px; height: 20px; accent-color: var(--btn); }
+  .error { color: var(--high); font-size: 14px; margin-bottom: 10px; min-height: 1em; }
+
+  /* 결과 */
+  .result-title { text-align: center; }
+  .big { font-size: 40px; font-weight: 800; line-height: 1.2; margin: 6px 0; }
+  .big.sugar { color: var(--sugar); }
+  .big.caf { color: var(--caffeine); }
+  .cubes { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 12px 0; }
+  .cube {
+    width: 24px; height: 24px; border-radius: 4px;
+    background: #fff; border: 2px solid #e2d6c8;
+    box-shadow: inset -3px -3px 0 #f0e7dc;
+  }
+  .cube.part { clip-path: inset(0 50% 0 0); }
+  .cups { font-size: 30px; text-align: center; letter-spacing: 4px; margin: 10px 0; }
+  .cups .half { opacity: 0.4; }
+  .gauge { margin-top: 14px; }
+  .gauge-top { display: flex; justify-content: space-between; font-size: 14px; color: var(--sub); margin-bottom: 6px; }
+  .bar { height: 14px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .bar span { display: block; height: 100%; border-radius: 999px; transition: width 0.8s ease; }
+  .msg { text-align: center; font-size: 15px; margin-top: 14px; padding: 12px; border-radius: 12px; background: var(--soft); }
+  .center { text-align: center; color: var(--sub); }
+  .note { font-size: 12.5px; color: var(--sub); margin-top: 10px; line-height: 1.5; }
+
   @media (prefers-reduced-motion: reduce) {
     .icons span { animation: none; }
+    .bar span { transition: none; }
   }
 </style>
 </head>
 <body>
-  <main class="card">
+
+<!-- ========== 0. 첫 화면 ========== -->
+<section class="screen active" id="home">
+  <main class="card hero">
     <div class="icons" aria-hidden="true"><span>🥤</span><span>🔍</span><span>☕</span></div>
-    <h1><span class="sugar">슈가</span> &amp; <span class="caffeine">카페인</span><br>디텍터</h1>
+    <h1>마시기 전에<br><span class="accent">3초만</span></h1>
     <p>내가 마신 음료 속 당과 카페인, 얼마나 들어 있는지 찾아볼까요?</p>
-    <button type="button" id="startBtn">시작</button>
+    <button class="btn" type="button" onclick="go('guide')">시작</button>
   </main>
+</section>
+
+<!-- ========== 1-1. 어디를 찍을까? ========== -->
+<section class="screen" id="guide">
+  <button class="back" type="button" onclick="go('home')">← 처음으로</button>
+  <div class="card">
+    <span class="step-tag">① 내 음료 확인하기</span>
+    <h2>음료 뒷면, 여기를 찍어요!</h2>
+    <p class="desc">음료 포장에서 아래 세 군데만 보면 돼요.</p>
+
+    <div class="label" aria-label="영양정보 표 예시">
+      <div class="label-head hl"><span><span class="num">1</span>영양정보</span><span>총 내용량 500ml</span></div>
+      <div class="label-row"><span>나트륨 15mg</span><span>1%</span></div>
+      <div class="label-row"><span>탄수화물 54g</span><span>17%</span></div>
+      <div class="label-row indent hl"><span><span class="num">2</span>당류 54g</span><span>54%</span></div>
+      <div class="label-row"><span>단백질 0g</span><span>0%</span></div>
+    </div>
+    <div class="caf-box hl"><span class="num">3</span><span><b>고카페인 함유</b> · 총카페인 함량 <b>80mg</b></span></div>
+
+    <ul class="checklist">
+      <li><span class="num">1</span><div>영양정보 표 맨 위
+        <small>'총 내용량 ○○ml'인지 '100ml당'인지 꼭 확인! 100ml당이면 실제로는 더 많이 마시는 거예요.</small></div></li>
+      <li><span class="num">2</span><div>탄수화물 아래 '당류 ○○g'
+        <small>탄수화물이 아니라 그 아래 줄 '당류' 숫자를 봐요.</small></div></li>
+      <li><span class="num">3</span><div>'고카페인 함유' 또는 '총카페인 함량 ○○mg'
+        <small>영양정보 표 밖에 있어요. 제품명 근처나 주의사항 문구 쪽을 찾아보세요.</small></div></li>
+    </ul>
+    <div class="tip">💡 카페인 표시가 없다면? 1ml당 0.15mg보다 적어서 표시 의무가 없는 경우예요. 콜라·녹차 음료처럼 조금은 들어 있을 수 있어요.</div>
+  </div>
+  <button class="btn" type="button" onclick="go('scan')">알겠어요, 찍으러 가기</button>
+</section>
+
+<!-- ========== 1-2. 촬영 + 입력 ========== -->
+<section class="screen" id="scan">
+  <button class="back" type="button" onclick="go('guide')">← 찍는 위치 다시 보기</button>
+  <div class="card">
+    <span class="step-tag">① 내 음료 확인하기</span>
+    <h2>음료 뒷면을 찍어요</h2>
+    <p class="desc">사진은 내 휴대폰에서만 보여요. 어디에도 저장되거나 전송되지 않아요.</p>
+    <div class="photo-area" id="photoArea">📷 아직 사진이 없어요</div>
+    <input type="file" id="photoInput" accept="image/*" capture="environment">
+    <button class="btn" type="button" onclick="document.getElementById('photoInput').click()" id="photoBtn">사진 찍기</button>
+  </div>
+
+  <div class="card">
+    <h3>사진을 보면서 숫자를 옮겨 적어요</h3>
+
+    <div class="field">
+      <label for="drinkName">음료 이름 <small>(선택)</small></label>
+      <input type="text" id="drinkName" placeholder="예: 에너지드링크, 아이스티">
+    </div>
+
+    <div class="field">
+      <label for="volume"><span class="num">1</span>총 내용량</label>
+      <div class="input-wrap"><input type="number" id="volume" inputmode="decimal" min="0" placeholder="500"><span class="unit">ml</span></div>
+    </div>
+
+    <div class="field">
+      <label for="sugar"><span class="num">2</span>당류</label>
+      <div class="seg" data-target="sugarBasis">
+        <button type="button" class="on" data-v="total">총 내용량 기준</button>
+        <button type="button" data-v="per100">100ml당</button>
+      </div>
+      <div class="input-wrap"><input type="number" id="sugar" inputmode="decimal" min="0" placeholder="54"><span class="unit">g</span></div>
+    </div>
+
+    <div class="field">
+      <label for="caffeine"><span class="num">3</span>카페인</label>
+      <div class="seg" data-target="cafBasis">
+        <button type="button" class="on" data-v="total">총 함량</button>
+        <button type="button" data-v="per100">100ml당</button>
+      </div>
+      <div class="input-wrap"><input type="number" id="caffeine" inputmode="decimal" min="0" placeholder="80"><span class="unit">mg</span></div>
+      <label class="check"><input type="checkbox" id="noCaf"> 카페인 표시가 없어요</label>
+    </div>
+
+    <div class="field">
+      <label for="weight">내 몸무게 <small>(선택 · 저장 안 됨)</small></label>
+      <div class="input-wrap"><input type="number" id="weight" inputmode="decimal" min="0" placeholder="비워두면 50kg으로 계산"><span class="unit">kg</span></div>
+    </div>
+
+    <p class="error" id="error" role="alert"></p>
+    <button class="btn" type="button" onclick="showResult()">결과 보기</button>
+  </div>
+</section>
+
+<!-- ========== 1-3. 결과 ========== -->
+<section class="screen" id="result">
+  <button class="back" type="button" onclick="go('scan')">← 숫자 고치기</button>
+
+  <div class="card result-title">
+    <span class="step-tag">① 내 음료 확인 결과</span>
+    <h2 id="rName">이 음료 한 병에는</h2>
+  </div>
+
+  <div class="card">
+    <h3>🧊 당류</h3>
+    <p class="center">각설탕으로 바꾸면</p>
+    <p class="big sugar center" id="rCubes">0개</p>
+    <div class="cubes" id="cubeBox" aria-hidden="true"></div>
+    <div class="gauge">
+      <div class="gauge-top"><span>하루 권장량(50g) 중</span><b id="rSugarPct">0%</b></div>
+      <div class="bar"><span id="sugarBar"></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>☕ 카페인</h3>
+    <p class="center">아메리카노로 바꾸면</p>
+    <p class="big caf center" id="rCups">0잔</p>
+    <div class="cups" id="cupBox" aria-hidden="true"></div>
+    <div class="gauge">
+      <div class="gauge-top"><span id="rCafLimitText">하루 최대 권고량 중</span><b id="rCafPct">0%</b></div>
+      <div class="bar"><span id="cafBar"></span></div>
+    </div>
+  </div>
+
+  <div class="msg" id="rMsg"></div>
+  <p class="note">· 각설탕 1개 = 당류 약 3g, 아메리카노 1잔 = 카페인 약 100mg으로 계산했어요.<br>
+  · 당류 권장량은 하루 50g(WHO 권고: 하루 열량의 10% 미만), 청소년 카페인 최대 권고량은 몸무게 1kg당 2.5mg(식품의약품안전처) 기준이에요.</p>
+
+  <div style="margin-top:18px">
+    <button class="btn" type="button" onclick="nextStep()">② 몸속 카페인 따라가기 →</button>
+    <button class="btn ghost" type="button" onclick="resetScan()">다른 음료 확인하기</button>
+  </div>
+</section>
 
 <script>
-  document.getElementById('startBtn').addEventListener('click', function () {
-    alert('준비 중입니다! 조금만 기다려 주세요 😊');
+  // ---------- 설정값 (필요하면 여기만 고치면 돼요) ----------
+  const SUGAR_PER_CUBE = 3;     // 각설탕 1개 당류(g)
+  const CAF_PER_CUP = 100;      // 아메리카노 1잔 카페인(mg)
+  const SUGAR_DAILY = 50;       // 하루 당류 권장량(g)
+  const CAF_PER_KG = 2.5;       // 청소년 카페인 최대 권고량(mg/kg)
+  const DEFAULT_WEIGHT = 50;    // 몸무게 미입력 시(kg)
+
+  // ---------- 화면 전환 ----------
+  function go(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- 기준 선택 버튼 ----------
+  const basis = { sugarBasis: 'total', cafBasis: 'total' };
+  document.querySelectorAll('.seg').forEach(seg => {
+    seg.querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        seg.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+        b.classList.add('on');
+        basis[seg.dataset.target] = b.dataset.v;
+      });
+    });
   });
+
+  // ---------- 사진 ----------
+  let photoURL = null;
+  document.getElementById('photoInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (photoURL) URL.revokeObjectURL(photoURL);
+    photoURL = URL.createObjectURL(file);
+    document.getElementById('photoArea').innerHTML = '<img src="' + photoURL + '" alt="찍은 음료 사진">';
+    document.getElementById('photoBtn').textContent = '다시 찍기';
+  });
+
+  // ---------- 카페인 표시 없음 ----------
+  const noCaf = document.getElementById('noCaf');
+  const cafInput = document.getElementById('caffeine');
+  noCaf.addEventListener('change', () => {
+    cafInput.disabled = noCaf.checked;
+    if (noCaf.checked) cafInput.value = '';
+  });
+
+  // ---------- 결과 계산 ----------
+  const num = id => parseFloat(document.getElementById(id).value);
+  const round1 = n => Math.round(n * 10) / 10;
+
+  function showResult() {
+    const err = document.getElementById('error');
+    err.textContent = '';
+    const volume = num('volume');
+    let sugar = num('sugar');
+    let caf = noCaf.checked ? 0 : num('caffeine');
+    const weight = num('weight') > 0 ? num('weight') : DEFAULT_WEIGHT;
+
+    if (isNaN(sugar) || sugar < 0) { err.textContent = '당류 숫자를 적어 주세요. (없으면 0)'; return; }
+    if (!noCaf.checked && (isNaN(caf) || caf < 0)) { err.textContent = '카페인 숫자를 적거나 "표시가 없어요"를 눌러 주세요.'; return; }
+    const needVolume = basis.sugarBasis === 'per100' || (!noCaf.checked && basis.cafBasis === 'per100');
+    if (needVolume && !(volume > 0)) { err.textContent = '100ml당으로 계산하려면 총 내용량(ml)이 필요해요.'; return; }
+
+    if (basis.sugarBasis === 'per100') sugar = sugar * volume / 100;
+    if (basis.cafBasis === 'per100') caf = caf * volume / 100;
+
+    const cubes = sugar / SUGAR_PER_CUBE;
+    const cups = caf / CAF_PER_CUP;
+    const sugarPct = Math.round(sugar / SUGAR_DAILY * 100);
+    const cafLimit = weight * CAF_PER_KG;
+    const cafPct = Math.round(caf / cafLimit * 100);
+
+    const name = document.getElementById('drinkName').value.trim();
+    document.getElementById('rName').textContent = (name ? name : '이 음료') + ' 한 병에는';
+
+    // 당류
+    document.getElementById('rCubes').textContent = round1(cubes) + '개';
+    const cubeBox = document.getElementById('cubeBox');
+    cubeBox.innerHTML = '';
+    const whole = Math.min(Math.floor(cubes), 40);
+    for (let i = 0; i < whole; i++) cubeBox.insertAdjacentHTML('beforeend', '<div class="cube"></div>');
+    if (cubes - Math.floor(cubes) >= 0.3 && whole < 40) cubeBox.insertAdjacentHTML('beforeend', '<div class="cube part"></div>');
+    setBar('sugarBar', sugarPct);
+    document.getElementById('rSugarPct').textContent = sugarPct + '%';
+
+    // 카페인
+    document.getElementById('rCups').textContent = caf === 0 ? '표시 없음' : round1(cups) + '잔';
+    const cupBox = document.getElementById('cupBox');
+    const fullCups = Math.min(Math.floor(cups), 10);
+    cupBox.innerHTML = '☕'.repeat(fullCups) + (cups - Math.floor(cups) >= 0.3 && fullCups < 10 ? '<span class="half">☕</span>' : '');
+    document.getElementById('rCafLimitText').textContent = '하루 최대 권고량(' + Math.round(cafLimit) + 'mg) 중';
+    setBar('cafBar', cafPct);
+    document.getElementById('rCafPct').textContent = cafPct + '%';
+
+    // 한마디
+    const top = Math.max(sugarPct, cafPct);
+    let msg;
+    if (top >= 100) msg = '😮 이거 하나로 하루 권장량을 넘었어요! 오늘 다른 단 음료는 쉬어 가면 어때요?';
+    else if (top >= 50) msg = '🤔 하루 권장량의 절반이 넘어요. 자주 마신다면 한 번쯤 바꿔 볼 만해요.';
+    else msg = '🙂 비교적 가벼운 음료예요. 그래도 하루에 몇 병 마시는지 함께 따져 봐요.';
+    document.getElementById('rMsg').textContent = msg;
+
+    go('result');
+  }
+
+  function setBar(id, pct) {
+    const bar = document.getElementById(id);
+    const color = pct >= 100 ? 'var(--high)' : pct >= 50 ? 'var(--warn)' : 'var(--ok)';
+    bar.style.width = '0%';
+    bar.style.background = color;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      bar.style.width = Math.min(pct, 100) + '%';
+    }));
+  }
+
+  function resetScan() {
+    ['drinkName', 'volume', 'sugar', 'caffeine'].forEach(id => document.getElementById(id).value = '');
+    noCaf.checked = false;
+    cafInput.disabled = false;
+    if (photoURL) URL.revokeObjectURL(photoURL);
+    photoURL = null;
+    document.getElementById('photoInput').value = '';
+    document.getElementById('photoArea').innerHTML = '📷 아직 사진이 없어요';
+    document.getElementById('photoBtn').textContent = '사진 찍기';
+    go('scan');
+  }
+
+  function nextStep() {
+    alert('② 몸속 카페인 따라가기는 준비 중입니다! 😊');
+  }
 </script>
 </body>
 </html>
